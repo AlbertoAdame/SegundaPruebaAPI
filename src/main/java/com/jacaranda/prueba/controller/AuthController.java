@@ -1,7 +1,5 @@
 package com.jacaranda.prueba.controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +31,9 @@ public class AuthController {
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			Users user = (Users) authentication.getPrincipal();
 			String jwt = JwtUtils.generateToken(loginRequest.getUsername(), user.getEmail(), user.getRole());
-			Users userDetails = (Users) authentication.getPrincipal();
-			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-					.collect(Collectors.toList());
+//			Users userDetails = (Users) authentication.getPrincipal();
+//			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+//					.collect(Collectors.toList());
 			return ResponseEntity.ok(jwt);
 		}
 	}

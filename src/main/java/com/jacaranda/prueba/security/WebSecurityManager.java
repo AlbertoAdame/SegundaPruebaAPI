@@ -13,22 +13,35 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.jacaranda.prueba.service.UserService;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityManager {
+	
 	@Autowired
 	private UserService myUserDetailService;
+
+	// Método que usaremos más abajo
+	@Autowired
+	AuthEntryPointJwt unauthorizedHandler;
+	
+	@Bean
+	public JwtAuthorizationFilter authenticationJwtTokenFilter() {
+	return new JwtAuthorizationFilter();
+	}
+	
+
 
 	// Indicamos que la configuración se hará a travéx del servicio.
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(myUserDetailService);
 	}
 
-	// Método que usaremos más abajo
-	@Bean
+	
+	
 	public UserDetailsService userDetailsService() {
 		return new UserService();
 	}
@@ -59,12 +72,18 @@ public class WebSecurityManager {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 	http.csrf().disable()
 	.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	.and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
 	.and()
 	.authorizeHttpRequests((requests) ->{
 	requests
+	.requestMatchers("/element").authenticated()
 	.requestMatchers("/signin").permitAll()
-	.anyRequest().permitAll();
+	.anyRequest().denyAll();
 	});
+	
+	http.authenticationProvider(authenticationProvider());
+	http.addFilterBefore(authenticationJwtTokenFilter(),
+			UsernamePasswordAuthenticationFilter.class);
 	return http.build();
 	}
 }
